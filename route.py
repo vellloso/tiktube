@@ -25,6 +25,10 @@ def login():
 @app.route('/register')
 def register():
     return ctl.render('register')
+
+@app.route('/home')
+def home():
+    return ctl.render('home')
 #-----------------------------------------------------------------------------
 # Suas rotas aqui:
 
