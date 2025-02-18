@@ -1,8 +1,8 @@
-# Bmvc
+fazer o venv
 
-## Trabalhando com o BMVC no BASH:
+pip install -r requirements.txt
 
-1. Executar o arquivo 'route.py', na raiz do projeto.
+python route.py
 
 ## Trabalhando com o BMVC no DOCKER:
 
