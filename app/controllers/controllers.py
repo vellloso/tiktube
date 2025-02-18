@@ -13,6 +13,10 @@ def criar_usuario(db: Session, nome: str, senha: str):
     db.refresh(db_usuario)
     return db_usuario
 
+def autenticar_usuario(db: Session, nome: str, senha: str):
+    return db.query(Usuario).filter(Usuario.nome == nome, Usuario.senha == senha).first()
+
+
 def criar_seguidor(db: Session, usuario_id: int, seguindo_id: int):
     db_seguidor = Seguidor(usuario_id=usuario_id, seguindo_id=seguindo_id)
     db.add(db_seguidor)

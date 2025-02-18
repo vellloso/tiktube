@@ -52,6 +52,11 @@ def validarLogin():
     # Processar os dados do formulário
     nome = form_data.get('username')
     senha = form_data.get('password')
+    
+    usuario = controllers.autenticar_usuario(db, nome=nome, senha=senha)
+    if usuario is None:
+        redirect('/login')
+
     # Codificar o campo para evitar problemas com caracteres especiais
     print("NOME: " + nome)
     print("SENHA: " + senha)
@@ -66,8 +71,8 @@ def validarCadastro():
     # Processar os dados do formulário
     nome = form_data.get('username')
     senha = form_data.get('password')
-    # Exemplo de criação de usuários
-    #usuario1 = controllers.criar_usuario(db, nome=nome, senha=senha)
+    
+    usuario1 = controllers.criar_usuario(db, nome=nome, senha=senha)
     # Codificar o campo para evitar problemas com caracteres especiais
     print("NOME: " + nome)
     print("SENHA: " + senha)
