@@ -7,7 +7,7 @@ class Application:
             'register': self.register,
             'home': self.home,
             'helper': self.helper,
-            'upload': self.upload
+            'profile': self.profile
         }
 
     def render(self, page, info=None):
@@ -29,5 +29,5 @@ class Application:
     def home(self, info=None):
         return template('app/views/html/home', info=info)
     
-    def upload(self, info=None):
-        return template('app/views/html/upload')
+    def profile(self, info=None):
+        return template('app/views/html/profile', info=info)

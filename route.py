@@ -94,40 +94,82 @@ def logout():
     response.set_cookie("logado", "", expires=0)
     redirect('/home')
 
-@app.route('/upload')
-def upload():
-    nome = request.get_cookie("nome")
-    logado = request.get_cookie("logado")
+@app.route('/profile')
+def profile():
+    nome = request.get_cookie("nome", default="Visitante")
+    logado = request.get_cookie("logado", default="NAO")
     if logado == "SIM":
-        return ctl.render('upload')
+        usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+        if usuario:
+            redirect(f'/profile/{usuario.id}')
     else:
-        return "Você precisa estar logado para fazer upload de vídeos."
+        redirect('/login')
 
-@app.route('/upload-video', method='POST')
-def upload_video():
-    titulo = request.forms.get('titulo')
-    video = request.files.get('video')
+@app.route('/profile/<usuario_id:int>')
+def view_profile(usuario_id):
+    nome = request.get_cookie("nome", default="Visitante")
+    logado = request.get_cookie("logado", default="NAO")
+    usuario_logado = db.query(Usuario).filter(Usuario.nome == nome).first()
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
     
-    # Verifique se o diretório de upload existe, caso contrário, crie-o
-    if not os.path.exists(UPLOAD_DIR):
-        os.makedirs(UPLOAD_DIR)
+    if usuario:
+        is_self = usuario_logado and usuario_logado.id == usuario.id
+        is_following = False
+        if usuario_logado:
+            is_following = db.query(Seguidor).filter(Seguidor.usuario_id == usuario_logado.id, Seguidor.seguindo_id == usuario.id).first() is not None
+        videos = db.query(Video).filter(Video.usuario_id == usuario.id).all()
+        info = {
+            'nome': usuario.nome,
+            'seguidores': usuario.seguidores,
+            'seguindo': usuario.seguindo,
+            'is_self': is_self,
+            'is_following': is_following,
+            'usuario_id': usuario.id,
+            'videos': [{'titulo': video.titulo, 'caminho': video.caminho, 'descricao': 'Descrição do vídeo...', 'comentarios': ['Comentário 1...', 'Comentário 2...']} for video in videos]
+        }
+    else:
+        info = {'nome': 'Usuário não encontrado', 'seguidores': 0, 'seguindo': 0, 'is_self': False, 'is_following': False, 'usuario_id': 0, 'videos': []}
     
-    # Salve o vídeo na pasta de uploads com permissões adequadas
-    video_path = os.path.join(UPLOAD_DIR, video.filename)
-    video.save(video_path)
-    os.chmod(video_path, 0o644)
+    return ctl.render('profile', info)
+
+@app.route('/follow', method='POST')
+def follow():
+    usuario_id = int(request.forms.get('usuario_id'))
+    nome = request.get_cookie("nome", default="Visitante")
+    usuario_logado = db.query(Usuario).filter(Usuario.nome == nome).first()
     
-    # Obtenha o usuário atual a partir do cookie
-    nome = request.get_cookie("nome")
-    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    if usuario_logado:
+        controllers.criar_seguidor(db, usuario_logado.id, usuario_id)
+        controllers.incrementar_seguidores(db, usuario_id)
+        controllers.incrementar_seguindo(db, usuario_logado.id)
     
-    if not usuario:
-        return "Erro: Usuário não encontrado!"
+    redirect(f'/profile/{usuario_id}')
+
+@app.route('/unfollow', method='POST')
+def unfollow():
+    usuario_id = int(request.forms.get('usuario_id'))
+    nome = request.get_cookie("nome", default="Visitante")
+    usuario_logado = db.query(Usuario).filter(Usuario.nome == nome).first()
     
-    # Adicione o vídeo ao banco de dados
-    novo_video = controllers.criar_video(db, usuario_id=usuario.id, titulo=titulo, caminho=video.filename)
+    if usuario_logado:
+        controllers.remover_seguidor(db, usuario_logado.id, usuario_id)
+        controllers.decrementar_seguidores(db, usuario_id)
+        controllers.decrementar_seguindo(db, usuario_logado.id)
     
-    return f"Upload concluído! Vídeo salvo em: {video_path}"
+    redirect(f'/profile/{usuario_id}')
+
+@app.route('/editar-perfil', method='POST')
+def editar_perfil():
+    nome = request.get_cookie("nome", default="Visitante")
+    usuario_logado = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if usuario_logado:
+        novo_nome = request.forms.get('nome')
+        nova_senha = request.forms.get('senha')
+        controllers.editar_perfil(db, usuario_logado.id, novo_nome, nova_senha)
+        response.set_cookie("nome", novo_nome, path="/")
+    
+    redirect(f'/profile/{usuario_logado.id}')
 
 if __name__ == '__main__':
     run(app, host='localhost', port=8080, debug=True)
