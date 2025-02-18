@@ -19,15 +19,14 @@
         </nav>
         <main class="main-content">
             <div class="profile-container">
-                <h1>Perfil de {{info['nome']}}</h1>
+                <h1>{{info['nome']}}</h1>
                 <div class="profile-info">
-                    <p><strong>Nome:</strong> {{info['nome']}}</p>
                     <p><strong>Seguidores:</strong> {{info['seguidores']}}</p>
                     <p><strong>Seguindo:</strong> {{info['seguindo']}}</p>
                 </div>
                 <div class="profile-actions">
                     % if info['is_self']:
-                        <a href="/editar-perfil" class="btn">Editar Perfil</a>
+                        <button class="btn" onclick="openEditProfilePopup()">Editar Perfil</button>
                     % else:
                         % if info['is_following']:
                             <form action="/unfollow" method="post">
@@ -76,5 +75,30 @@
             </div>
         </main>
     </div>
+
+    <!-- Popup de Edição de Perfil -->
+    <div id="editProfilePopup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="closeEditProfilePopup()">&times;</span>
+            <h2>Editar Perfil</h2>
+            <form action="/editar-perfil" method="post">
+                <label for="nome">Nome:</label>
+                <input type="text" id="nome" name="nome" value="{{info['nome']}}" required>
+                <label for="senha">Senha:</label>
+                <input type="password" id="senha" name="senha" required>
+                <button type="submit" class="btn">Salvar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditProfilePopup() {
+            document.getElementById("editProfilePopup").style.display = "block";
+        }
+
+        function closeEditProfilePopup() {
+            document.getElementById("editProfilePopup").style.display = "none";
+        }
+    </script>
 </body>
 </html>
