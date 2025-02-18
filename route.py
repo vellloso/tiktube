@@ -18,7 +18,9 @@ def serve_static(filepath):
 def helper(info= None):
     return ctl.render('helper')
 
-
+@app.route('/login')
+def login():
+    return ctl.render('login')
 #-----------------------------------------------------------------------------
 # Suas rotas aqui:
 
@@ -29,4 +31,4 @@ def helper(info= None):
 
 if __name__ == '__main__':
 
-    run(app, host='0.0.0.0', port=8080, debug=True)
+    run(app, host='LocalHost', port=8080, debug=True)
