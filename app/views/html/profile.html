@@ -27,6 +27,7 @@
                 <div class="profile-actions">
                     % if info['is_self']:
                         <button class="btn" onclick="openEditProfilePopup()">Editar Perfil</button>
+                        <button class="btn" onclick="openUploadVideoPopup()">Upload de Vídeo</button>
                     % else:
                         % if info['is_following']:
                             <form action="/unfollow" method="post">
@@ -91,6 +92,20 @@
         </div>
     </div>
 
+    <div id="uploadVideoPopup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="closeUploadVideoPopup()">&times;</span>
+            <h2>Upload de Vídeo</h2>
+            <form action="/upload-video" method="post" enctype="multipart/form-data">
+                <label for="titulo">Título do Vídeo:</label>
+                <input type="text" id="titulo" name="titulo" required><br><br>
+                <label for="video">Selecione o Vídeo:</label>
+                <input type="file" id="video" name="video" accept="video/*" required><br><br>
+                <input type="submit" value="Upload" class="btn">
+            </form>
+        </div>
+    </div>
+
     <script>
         function openEditProfilePopup() {
             document.getElementById("editProfilePopup").style.display = "block";
@@ -98,6 +113,14 @@
 
         function closeEditProfilePopup() {
             document.getElementById("editProfilePopup").style.display = "none";
+        }
+
+        function openUploadVideoPopup() {
+            document.getElementById("uploadVideoPopup").style.display = "block";
+        }
+
+        function closeUploadVideoPopup() {
+            document.getElementById("uploadVideoPopup").style.display = "none";
         }
     </script>
 </body>

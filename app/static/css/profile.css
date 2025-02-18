@@ -276,7 +276,8 @@ video {
 }
 
 .popup-content input[type="text"],
-.popup-content input[type="password"] {
+.popup-content input[type="password"],
+.popup-content input[type="file"] {
     width: 100%;
     padding: 10px;
     margin-bottom: 20px;
