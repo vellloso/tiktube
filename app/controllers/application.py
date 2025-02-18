@@ -6,7 +6,8 @@ class Application:
             'login': self.login,
             'register': self.register,
             'home': self.home,
-            'helper': self.helper
+            'helper': self.helper,
+            'profile': self.profile
         }
 
     def render(self, page, info=None):
@@ -27,3 +28,6 @@ class Application:
 
     def home(self, info=None):
         return template('app/views/html/home', info=info)
+    
+    def profile(self, info=None):
+        return template('app/views/html/profile', info=info)

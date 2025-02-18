@@ -88,5 +88,67 @@ def logout():
     response.set_cookie("logado", "", expires=0)
     redirect('/home')
 
+@app.route('/profile')
+def profile():
+    nome = request.get_cookie("nome", default="Visitante")
+    logado = request.get_cookie("logado", default="NAO")
+    if logado == "SIM":
+        usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+        if usuario:
+            redirect(f'/profile/{usuario.id}')
+    else:
+        redirect('/login')
+
+@app.route('/profile/<usuario_id:int>')
+def view_profile(usuario_id):
+    nome = request.get_cookie("nome", default="Visitante")
+    logado = request.get_cookie("logado", default="NAO")
+    usuario_logado = db.query(Usuario).filter(Usuario.nome == nome).first()
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    
+    if usuario:
+        is_self = usuario_logado and usuario_logado.id == usuario.id
+        is_following = db.query(Seguidor).filter(Seguidor.usuario_id == usuario_logado.id, Seguidor.seguindo_id == usuario.id).first() is not None
+        videos = db.query(Video).filter(Video.usuario_id == usuario.id).all()
+        info = {
+            'nome': usuario.nome,
+            'seguidores': usuario.seguidores,
+            'seguindo': usuario.seguindo,
+            'is_self': is_self,
+            'is_following': is_following,
+            'usuario_id': usuario.id,
+            'videos': [{'titulo': video.titulo, 'caminho': video.caminho, 'descricao': 'Descrição do vídeo...', 'comentarios': ['Comentário 1...', 'Comentário 2...']} for video in videos]
+        }
+    else:
+        info = {'nome': 'Usuário não encontrado', 'seguidores': 0, 'seguindo': 0, 'is_self': False, 'is_following': False, 'usuario_id': 0, 'videos': []}
+    
+    return ctl.render('profile', info)
+
+@app.route('/follow', method='POST')
+def follow():
+    usuario_id = int(request.forms.get('usuario_id'))
+    nome = request.get_cookie("nome", default="Visitante")
+    usuario_logado = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if usuario_logado:
+        controllers.criar_seguidor(db, usuario_logado.id, usuario_id)
+        controllers.incrementar_seguidores(db, usuario_id)
+        controllers.incrementar_seguindo(db, usuario_logado.id)
+    
+    redirect(f'/profile/{usuario_id}')
+
+@app.route('/unfollow', method='POST')
+def unfollow():
+    usuario_id = int(request.forms.get('usuario_id'))
+    nome = request.get_cookie("nome", default="Visitante")
+    usuario_logado = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if usuario_logado:
+        controllers.remover_seguidor(db, usuario_logado.id, usuario_id)
+        controllers.decrementar_seguidores(db, usuario_id)
+        controllers.decrementar_seguindo(db, usuario_logado.id)
+    
+    redirect(f'/profile/{usuario_id}')
+
 if __name__ == '__main__':
     run(app, host='localhost', port=8080, debug=True)
