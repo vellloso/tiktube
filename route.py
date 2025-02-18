@@ -27,13 +27,10 @@ def login():
 @app.route('/register')
 def register():
     return ctl.render('register')
-#-----------------------------------------------------------------------------
-# Suas rotas aqui:
 
-
-
-#-----------------------------------------------------------------------------
-
+@app.route('/home')
+def home():
+    return ctl.render('home')
 
 if __name__ == '__main__':
     run(app, host='localhost', port=8080, debug=True)
