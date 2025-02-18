@@ -31,6 +31,9 @@ def criar_video(db: Session, usuario_id: int, titulo: str, caminho: str, likes: 
     db.refresh(db_video)
     return db_video
 
+def listar_videos(db: Session):
+    return db.query(Video).all()
+
 def criar_conversa(db: Session, usuario1_id: int, usuario2_id: int):
     db_conversa = Conversa(usuario1_id=usuario1_id, usuario2_id=usuario2_id)
     db.add(db_conversa)
