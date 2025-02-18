@@ -21,6 +21,10 @@ def helper(info= None):
 @app.route('/login')
 def login():
     return ctl.render('login')
+
+@app.route('/register')
+def register():
+    return ctl.render('register')
 #-----------------------------------------------------------------------------
 # Suas rotas aqui:
 

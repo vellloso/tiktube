@@ -5,7 +5,8 @@ class Application():
 
     def __init__(self):
         self.pages = {
-            'login': self.login
+            'login': self.login,
+            'register': self.register  
         }
 
 
@@ -19,3 +20,6 @@ class Application():
     
     def login(self):
         return template('app/views/html/login')
+    
+    def register(self):
+        return template('app/views/html/register')

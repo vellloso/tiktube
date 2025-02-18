@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Registro</title>
+   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+   <link rel="stylesheet" type="text/css" href="/static/css/login.css">
+</head>
+<body>
+    <div class="container">
+        <div class="login">
+            <h1>Cadastre-se no TikTube</h1>
+            <form action="/validar-registro" method="post">
+                <input type="text" name="username" placeholder="Usuário" required="required" />
+                <input type="password" name="password" placeholder="Senha" required="required" />
+                <input type="password" name="confirm_password" placeholder="Confirme a Senha" required="required" />
+                <button type="submit" class="btn btn-primary btn-block btn-large">Cadastrar</button>
+            </form>
+        </div>
+        <div class="cadastrar">
+            <p>Já tem uma conta? <a href="/login">Entre</a></p>
+        </div>
+    </div>
+</body>
+</html>

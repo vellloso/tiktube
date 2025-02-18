@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Login</title>
+   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+   <link rel="stylesheet" type="text/css" href="/static/css/login.css">
+</head>
+<body>
+    <div class="container">
+        <div class="login">
+            <h1>Entre no TikTube</h1>
+            <form action="/validar-login" method="post">
+                <input type="text" name="username" placeholder="Usuário" required="required" />
+                <input type="password" name="password" placeholder="Senha" required="required" />
+                <button type="submit" class="btn btn-primary btn-block btn-large">Entrar</button>
+            </form>
+        </div>
+        <div class="cadastrar">
+            <p>Não tem uma conta? <a href="/register">Cadastre-se</a></p>
+        </div>
+    </div>
+</body>
+</html>
