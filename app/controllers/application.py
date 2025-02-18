@@ -1,28 +1,29 @@
 from bottle import template
 
-class Application():
-
+class Application:
     def __init__(self):
         self.pages = {
             'login': self.login,
             'register': self.register,
-            'home': self.home
+            'home': self.home,
+            'helper': self.helper
         }
 
+    def render(self, page, info=None):
+        content = self.pages.get(page, self.helper)
+        if info:
+            return content(info)  
+        else: 
+            return content()
 
-    def render(self,page):
-       content = self.pages.get(page, self.helper)
-       return content()
-
-
-    def helper(self):
+    def helper(self, info=None):
         return template('app/views/html/helper')
-    
-    def login(self):
+
+    def login(self, info=None):
         return template('app/views/html/login')
-    
-    def register(self):
+
+    def register(self, info=None):
         return template('app/views/html/register')
-    
-    def home(self):
-        return template('app/views/html/home')
+
+    def home(self, info=None):
+        return template('app/views/html/home', info=info)
