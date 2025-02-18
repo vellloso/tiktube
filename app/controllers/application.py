@@ -1,6 +1,5 @@
 from bottle import template
 
-
 class Application():
 
     def __init__(self):
