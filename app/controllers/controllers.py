@@ -16,12 +16,11 @@ def criar_usuario(db: Session, nome: str, senha: str):
 def autenticar_usuario(db: Session, nome: str, senha: str):
     return db.query(Usuario).filter(Usuario.nome == nome, Usuario.senha == senha).first()
 
-
 def criar_seguidor(db: Session, usuario_id: int, seguindo_id: int):
     novo_seguidor = Seguidor(usuario_id=usuario_id, seguindo_id=seguindo_id)
     db.add(novo_seguidor)
     db.commit()
-    
+
 def remover_seguidor(db: Session, usuario_id: int, seguindo_id: int):
     db_seguidor = db.query(Seguidor).filter(Seguidor.usuario_id == usuario_id, Seguidor.seguindo_id == seguindo_id).first()
     if db_seguidor:
@@ -50,6 +49,13 @@ def decrementar_seguindo(db: Session, usuario_id: int):
     usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
     if usuario:
         usuario.seguindo -= 1
+        db.commit()
+
+def editar_perfil(db: Session, usuario_id: int, novo_nome: str, nova_senha: str):
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if usuario:
+        usuario.nome = novo_nome
+        usuario.senha = nova_senha  # Certifique-se de hash a senha antes de salvar
         db.commit()
 
 def criar_video(db: Session, usuario_id: int, titulo: str, caminho: str, likes: int = 0):

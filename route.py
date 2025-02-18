@@ -108,7 +108,9 @@ def view_profile(usuario_id):
     
     if usuario:
         is_self = usuario_logado and usuario_logado.id == usuario.id
-        is_following = db.query(Seguidor).filter(Seguidor.usuario_id == usuario_logado.id, Seguidor.seguindo_id == usuario.id).first() is not None
+        is_following = False
+        if usuario_logado:
+            is_following = db.query(Seguidor).filter(Seguidor.usuario_id == usuario_logado.id, Seguidor.seguindo_id == usuario.id).first() is not None
         videos = db.query(Video).filter(Video.usuario_id == usuario.id).all()
         info = {
             'nome': usuario.nome,
@@ -149,6 +151,19 @@ def unfollow():
         controllers.decrementar_seguindo(db, usuario_logado.id)
     
     redirect(f'/profile/{usuario_id}')
+
+@app.route('/editar-perfil', method='POST')
+def editar_perfil():
+    nome = request.get_cookie("nome", default="Visitante")
+    usuario_logado = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if usuario_logado:
+        novo_nome = request.forms.get('nome')
+        nova_senha = request.forms.get('senha')
+        controllers.editar_perfil(db, usuario_logado.id, novo_nome, nova_senha)
+        response.set_cookie("nome", novo_nome, path="/")
+    
+    redirect(f'/profile/{usuario_logado.id}')
 
 if __name__ == '__main__':
     run(app, host='localhost', port=8080, debug=True)
