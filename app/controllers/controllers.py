@@ -6,8 +6,8 @@ from app.models.conversa import Conversa
 from app.models.mensagem import Mensagem
 from app.models.notificacao import Notificacao
 
-def criar_usuario(db: Session, gmail: str, nome: str, senha: str):
-    db_usuario = Usuario(gmail=gmail, nome=nome, senha=senha)
+def criar_usuario(db: Session, nome: str, senha: str):
+    db_usuario = Usuario(nome=nome, senha=senha)
     db.add(db_usuario)
     db.commit()
     db.refresh(db_usuario)

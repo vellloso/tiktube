@@ -18,6 +18,13 @@
             </ul>
         </nav>
         <main class="main-content">
+            <div class="user-info">
+                % if info['logado'] == 'SIM':
+                    <h2>Bem-vindo, {{info['nome']}}</h2>
+                % else:
+                    <h2>Bem-vindo, você não está logado, caso queira logar <a href="/login">clique aqui</a>.</h2>
+                % end
+            </div>
             <div class="video-list">
                 <div class="video-container">
                     <video controls>
