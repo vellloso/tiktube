@@ -35,7 +35,7 @@
                         <div class="video-right">
                             <div class="video-info">
                                 <h2>{{video.titulo}}</h2>
-                                <p>Likes: {{video.likes}}</p>
+                                <p>Descrição do vídeo...</p>
                             </div>
                             <div class="video-actions">
                                 <button class="like-button">Curtir</button>

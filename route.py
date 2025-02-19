@@ -11,8 +11,7 @@ from app.models.mensagem import Mensagem
 from app.models.notificacao import Notificacao
 from app.controllers import controllers
 
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), 'app', 'controllers', 'db', 'videos')
-
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), 'app', 'static', 'videos')
 app = Bottle()
 ctl = Application()
 Base.metadata.create_all(bind=engine)
@@ -46,7 +45,6 @@ def register():
 
 @app.route('/home')
 def home():
-    # Recupera cookies
     nome = request.get_cookie("nome", default="Visitante")
     logado = request.get_cookie("logado", default="NAO")
     info = {'nome': nome, 'logado': logado}
@@ -56,40 +54,29 @@ def home():
 @app.route('/validar-login', method='POST')
 def validarLogin():
     form_data = request.forms        
-    # Processar os dados do formulário
     nome = form_data.get('username')
     senha = form_data.get('password')
-    # Verifique se o usuário existe no banco de dados
-    usuario = db.query(Usuario).filter(Usuario.nome == nome, Usuario.senha == senha).first()
-    if usuario:
-        # Define cookies
-        response.set_cookie("nome", nome, path="/")
-        response.set_cookie("logado", "SIM", path="/")
-        redirect('/home')
-    else:
-        return "Nome de usuário ou senha incorretos!"
+    
+    usuario = controllers.autenticar_usuario(db, nome=nome, senha=senha)
+    if usuario is None:
+        redirect('/login')
+    
+    response.set_cookie("nome", nome, path="/")
+    response.set_cookie("logado", "SIM", path="/")
+    redirect('/home')
 
 @app.route('/validar-registro', method='POST')
 def validarCadastro():
     form_data = request.forms        
-    # Processar os dados do formulário
     nome = form_data.get('username')
     senha = form_data.get('password')
-    # Verifique se o usuário já existe no banco de dados
-    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
-    if usuario:
-        return "O nome de usuário já existe!"
-    else:
-        # Exemplo de criação de usuários
-        usuario1 = controllers.criar_usuario(db, gmail=nome, nome=nome, senha=senha)
-        # Define cookies
-        response.set_cookie("nome", nome, path="/")
-        response.set_cookie("logado", "SIM", path="/")
-        redirect('/home')
+    usuario1 = controllers.criar_usuario(db, nome=nome, senha=senha)
+    response.set_cookie("nome", nome, path="/")
+    response.set_cookie("logado", "SIM", path="/")
+    redirect('/home')
 
 @app.route('/logout')
 def logout():
-    # Limpa cookies
     response.set_cookie("nome", "", expires=0)
     response.set_cookie("logado", "", expires=0)
     redirect('/home')
@@ -170,6 +157,28 @@ def editar_perfil():
         response.set_cookie("nome", novo_nome, path="/")
     
     redirect(f'/profile/{usuario_logado.id}')
+
+@app.route('/upload-video', method='POST')
+def upload_video():
+    titulo = request.forms.get('titulo')
+    video = request.files.get('video')
+    
+    if not os.path.exists(UPLOAD_DIR):
+        os.makedirs(UPLOAD_DIR)
+    
+    video_path = os.path.join(UPLOAD_DIR, video.filename)
+    video.save(video_path)
+    os.chmod(video_path, 0o644)
+    
+    nome = request.get_cookie("nome")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if not usuario:
+        return "Erro: Usuário não encontrado!"
+    
+    novo_video = controllers.criar_video(db, usuario_id=usuario.id, titulo=titulo, caminho=video.filename)
+    
+    return f"Upload concluído! Vídeo salvo em: {video_path}"    
 
 if __name__ == '__main__':
     run(app, host='localhost', port=8080, debug=True)
