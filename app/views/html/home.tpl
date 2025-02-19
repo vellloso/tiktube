@@ -19,40 +19,30 @@
         </nav>
         <main class="main-content">
             <div class="user-info">
-                % if info['logado'] == 'SIM':
-                    <h2>Bem-vindo, {{info['nome']}}</h2>
+                % if info['info']['logado'] == 'SIM':
+                    <h2>Bem-vindo, {{info['info']['nome']}}</h2>
                 % else:
                     <h2>Bem-vindo, você não está logado, caso queira logar <a href="/login">clique aqui</a>.</h2>
                 % end
             </div>
             <div class="video-list">
-                <div class="video-container">
-                    <video controls>
-                        <source src="/static/videos/sample.mp4" type="video/mp4">
-                        Seu navegador não suporta o elemento de vídeo.
-                    </video>
-                    <div class="video-right">
-                        <div class="video-info">
-                            <h2>Nome do Vídeo</h2>
-                            <p>Descrição do vídeo...</p>
-                        </div>
-                        <div class="video-actions">
-                            <button class="like-button">Curtir</button>
-                        </div>
-                        <div class="comments-section">
-                            <h3>Comentários</h3>
-                            <ul class="comments-list">
-                                <li>Comentário 1...</li>
-                                <li>Comentário 2...</li>
-                            </ul>
-                            <form class="comment-form">
-                                <input type="text" placeholder="Adicione um comentário..." required>
-                                <button type="submit">Enviar</button>
-                            </form>
+                % for video in info['videos']:
+                    <div class="video-container">
+                        <video controls>
+                            <source src="static/videos/{{video.caminho}}" type="video/mp4">
+                            Seu navegador não suporta o elemento de vídeo.
+                        </video>
+                        <div class="video-right">
+                            <div class="video-info">
+                                <h2>{{video.titulo}}</h2>
+                                <p>Descrição do vídeo...</p>
+                            </div>
+                            <div class="video-actions">
+                                <button class="like-button">Curtir</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <!-- Adicione mais vídeos aqui -->
+                % end
             </div>
         </main>
     </div>
