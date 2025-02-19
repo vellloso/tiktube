@@ -68,6 +68,12 @@ def criar_video(db: Session, usuario_id: int, titulo: str, caminho: str, likes: 
 def listar_videos(db: Session):
     return db.query(Video).all()
 
+def deletar_video(db: Session, video_id: int):
+    video = db.query(Video).filter(Video.id == video_id).first()
+    if video:
+        db.delete(video)
+        db.commit()
+
 def criar_conversa(db: Session, usuario1_id: int, usuario2_id: int):
     db_conversa = Conversa(usuario1_id=usuario1_id, usuario2_id=usuario2_id)
     db.add(db_conversa)

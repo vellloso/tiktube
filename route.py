@@ -1,4 +1,5 @@
 import os
+import uuid
 from app.controllers.application import Application
 from bottle import Bottle, route, run, request, static_file, redirect, response, template
 from urllib.parse import quote, unquote
@@ -112,7 +113,7 @@ def view_profile(usuario_id):
             'is_self': is_self,
             'is_following': is_following,
             'usuario_id': usuario.id,
-            'videos': [{'titulo': video.titulo, 'caminho': video.caminho, 'descricao': 'Descrição do vídeo...', 'comentarios': ['Comentário 1...', 'Comentário 2...']} for video in videos]
+            'videos': [{'titulo': video.titulo, 'caminho': video.caminho, 'id': video.id, 'descricao': 'Descrição do vídeo...', 'comentarios': ['Comentário 1...', 'Comentário 2...']} for video in videos]
         }
     else:
         info = {'nome': 'Usuário não encontrado', 'seguidores': 0, 'seguindo': 0, 'is_self': False, 'is_following': False, 'usuario_id': 0, 'videos': []}
@@ -166,7 +167,9 @@ def upload_video():
     if not os.path.exists(UPLOAD_DIR):
         os.makedirs(UPLOAD_DIR)
     
-    video_path = os.path.join(UPLOAD_DIR, video.filename)
+    # Gerar um nome de arquivo único
+    unique_filename = f"{uuid.uuid4()}_{video.filename}"
+    video_path = os.path.join(UPLOAD_DIR, unique_filename)
     video.save(video_path)
     os.chmod(video_path, 0o644)
     
@@ -176,9 +179,31 @@ def upload_video():
     if not usuario:
         return "Erro: Usuário não encontrado!"
     
-    novo_video = controllers.criar_video(db, usuario_id=usuario.id, titulo=titulo, caminho=video.filename)
+    novo_video = controllers.criar_video(db, usuario_id=usuario.id, titulo=titulo, caminho=unique_filename)
     
-    return f"Upload concluído! Vídeo salvo em: {video_path}"    
+    return f"Upload concluído! Vídeo salvo em: {video_path}"
+
+@app.route('/delete-video', method='POST')
+def delete_video():
+    video_id = int(request.forms.get('video_id'))
+    nome = request.get_cookie("nome")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if not usuario:
+        return "Erro: Usuário não encontrado!"
+    
+    video = db.query(Video).filter(Video.id == video_id, Video.usuario_id == usuario.id).first()
+    
+    if not video:
+        return "Erro: Vídeo não encontrado ou você não tem permissão para excluí-lo!"
+    
+    video_path = os.path.join(UPLOAD_DIR, video.caminho)
+    if os.path.exists(video_path):
+        os.remove(video_path)
+    
+    controllers.deletar_video(db, video_id)
+    
+    redirect(f'/profile/{usuario.id}')
 
 if __name__ == '__main__':
     run(app, host='localhost', port=8080, debug=True)

@@ -310,3 +310,59 @@ video {
     font-weight: bold;
     cursor: pointer;
 }
+
+.delete-video-form {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}
+
+.delete-video-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #ff4d4d;
+    color: #fff;
+    border: 2px solid #000;
+    border-radius: 0;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+    position: absolute;
+    left: -8rem;
+    top: 10px;
+}
+
+.delete-video-btn:hover {
+    background-color: #ff1a1a;
+}
+
+.popup-content .btn-red {
+    background-color: #ff4d4d;
+    color: #fff;
+    border: 2px solid #000;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease;
+    margin: 5px;
+}
+
+.popup-content .btn-red:hover {
+    background-color: #ff1a1a;
+}
+
+.popup-content .btn-green {
+    background-color: #4caf50;
+    color: #fff;
+    border: 2px solid #000;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease;
+    margin: 5px;
+}
+
+.popup-content .btn-green:hover {
+    background-color: #388e3c;
+}
