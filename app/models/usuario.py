@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 from app.controllers.db.database import Base
 
@@ -10,6 +10,7 @@ class Usuario(Base):
     senha = Column(String)
     seguidores = Column(Integer, default=0)
     seguindo = Column(Integer, default=0)
+    is_admin = Column(Boolean, default=False)
 
     seguidores_rel = relationship("Seguidor", foreign_keys="[Seguidor.usuario_id]", back_populates="usuario")
     seguindo_rel = relationship("Seguidor", foreign_keys="[Seguidor.seguindo_id]", back_populates="seguindo_usuario")

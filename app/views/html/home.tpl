@@ -14,6 +14,9 @@
             <ul>
                 <li><a href="/home">Home</a></li>
                 <li><a href="/profile">Perfil</a></li>
+                % if info.get('is_admin', False):
+                    <li><a href="/admin">Admin</a></li>
+                % end
                 <li><a href="/logout">Sair</a></li>
             </ul>
         </nav>
@@ -27,44 +30,48 @@
                 % end
             </div>
             <div class="video-list">
-                % for video in videos:
-                    <div class="video-container">
-                        <video controls>
-                            <source src="static/videos/{{video['caminho']}}" type="video/mp4">
-                            Seu navegador não suporta o elemento de vídeo.
-                        </video>
-                        <div class="video-right">
-                            <div class="video-info">
-                                <h2>{{video['titulo']}}</h2>
-                                <p>Por <strong>{{video['autor']}}</strong></p>
-                                <a href="/profile/{{video['autor_id']}}" class="btn">Visitar Perfil</a>
-                            </div>
-                            <div class="video-actions">
-                                % if not verificar_like(db, info['usuario_id'], video['id']):
-                                    <form action="/like-video" method="post">
-                                        <input type="hidden" name="video_id" value="{{video['id']}}">
-                                        <button type="submit" class="like-button">Curtir</button>
-                                    </form>
-                                % else:
-                                    <button class="like-button" disabled>Curtido</button>
-                                % end
-                                <p>{{video['likes']}} curtidas</p>
-                            </div>
-                            <div class="comments-section">
-                                <h3>Comentários</h3>
-                                <ul class="comments-list">
-                                    % for comentario in video['comentarios']:
-                                        <li><strong>{{comentario['autor']}}:</strong> {{comentario['conteudo']}}</li>
+                % if videos:
+                    % for video in videos:
+                        <div class="video-container">
+                            <video controls>
+                                <source src="static/videos/{{video['caminho']}}" type="video/mp4">
+                                Seu navegador não suporta o elemento de vídeo.
+                            </video>
+                            <div class="video-right">
+                                <div class="video-info">
+                                    <h2>{{video['titulo']}}</h2>
+                                    <p>Por <strong>{{video['autor']}}</strong></p>
+                                    <a href="/profile/{{video['autor_id']}}" class="btn">Visitar Perfil</a>
+                                </div>
+                                <div class="video-actions">
+                                    % if not verificar_like(db, info['usuario_id'], video['id']):
+                                        <form action="/like-video" method="post">
+                                            <input type="hidden" name="video_id" value="{{video['id']}}">
+                                            <button type="submit" class="like-button">Curtir</button>
+                                        </form>
+                                    % else:
+                                        <button class="like-button" disabled>Curtido</button>
                                     % end
-                                </ul>
-                                <form class="comment-form" action="/comentar-video" method="post">
-                                    <input type="hidden" name="video_id" value="{{video['id']}}">
-                                    <input type="text" name="conteudo" placeholder="Adicione um comentário..." required>
-                                    <button type="submit">Enviar</button>
-                                </form>
+                                    <p>{{video['likes']}} curtidas</p>
+                                </div>
+                                <div class="comments-section">
+                                    <h3>Comentários</h3>
+                                    <ul class="comments-list">
+                                        % for comentario in video['comentarios']:
+                                            <li><strong>{{comentario['autor']}}:</strong> {{comentario['conteudo']}}</li>
+                                        % end
+                                    </ul>
+                                    <form class="comment-form" action="/comentar-video" method="post">
+                                        <input type="hidden" name="video_id" value="{{video['id']}}">
+                                        <input type="text" name="conteudo" placeholder="Adicione um comentário..." required>
+                                        <button type="submit">Enviar</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    % end
+                % else:
+                    <p>Nenhum vídeo encontrado.</p>
                 % end
             </div>
         </main>
