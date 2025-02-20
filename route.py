@@ -61,8 +61,33 @@ def home():
             'caminho': video.caminho,
             'likes': video.likes,
             'autor': video.usuario.nome,
+            'autor_id': video.usuario.id,
             'comentarios': comentarios
         })
+    return template('app/views/html/home', info=info, videos=videos_info, verificar_like=controllers.verificar_like, db=db)
+
+@app.route('/home/following')
+def home_following():
+    nome = request.get_cookie("nome", default="Visitante")
+    logado = request.get_cookie("logado", default="NAO")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    if not usuario:
+        redirect('/login')
+    seguindo_ids = [seguidor.seguindo_id for seguidor in db.query(Seguidor).filter(Seguidor.usuario_id == usuario.id).all()]
+    videos = db.query(Video).filter(Video.usuario_id.in_(seguindo_ids)).all()
+    videos_info = []
+    for video in videos:
+        comentarios = [{'conteudo': comentario.conteudo, 'autor': comentario.usuario.nome} for comentario in video.comentarios]
+        videos_info.append({
+            'id': video.id,
+            'titulo': video.titulo,
+            'caminho': video.caminho,
+            'likes': video.likes,
+            'autor': video.usuario.nome,
+            'autor_id': video.usuario.id,
+            'comentarios': comentarios
+        })
+    info = {'nome': nome, 'logado': logado, 'usuario_id': usuario.id}
     return template('app/views/html/home', info=info, videos=videos_info, verificar_like=controllers.verificar_like, db=db)
 
 @app.route('/validar-login', method='POST')

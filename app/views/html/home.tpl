@@ -21,6 +21,7 @@
             <div class="user-info">
                 % if info['logado'] == 'SIM':
                     <h2>Bem-vindo, {{info['nome']}}</h2>
+                    <a href="/home/following" class="btn">Seguindo</a>
                 % else:
                     <h2>Bem-vindo, você não está logado, caso queira logar <a href="/login">clique aqui</a>.</h2>
                 % end
@@ -36,6 +37,7 @@
                             <div class="video-info">
                                 <h2>{{video['titulo']}}</h2>
                                 <p>Por <strong>{{video['autor']}}</strong></p>
+                                <a href="/profile/{{video['autor_id']}}" class="btn">Visitar Perfil</a>
                             </div>
                             <div class="video-actions">
                                 % if not verificar_like(db, info['usuario_id'], video['id']):

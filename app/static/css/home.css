@@ -179,7 +179,7 @@ video {
 .comments-list {
     list-style: none;
     margin-bottom: 20px;
-    height: 450px;
+    height: 420px;
 }
 
 .comments-list li {
@@ -218,4 +218,22 @@ video {
 
 .comment-form button:hover {
     background-color: #ff9900
+}
+
+
+.btn {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #ffcc00;
+    color: #000;
+    border: 2px solid #000;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.btn:hover {
+    background-color: #ff9900;
 }
