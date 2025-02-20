@@ -160,7 +160,7 @@ video {
 .video-actions {
     position: absolute;
     bottom: 60px;
-    left: 10px;
+    left: -8rem;
     display: flex;
     flex-direction: column;
     gap: 10px;

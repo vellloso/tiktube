@@ -2,9 +2,11 @@ from sqlalchemy.orm import Session
 from app.models.usuario import Usuario
 from app.models.seguidor import Seguidor
 from app.models.video import Video
+from app.models.like import Like
 from app.models.conversa import Conversa
 from app.models.mensagem import Mensagem
 from app.models.notificacao import Notificacao
+from app.models.comentario import Comentario
 
 def criar_usuario(db: Session, nome: str, senha: str):
     db_usuario = Usuario(nome=nome, senha=senha)
@@ -65,14 +67,36 @@ def criar_video(db: Session, usuario_id: int, titulo: str, caminho: str, likes: 
     db.refresh(db_video)
     return db_video
 
-def listar_videos(db: Session):
-    return db.query(Video).all()
 
 def deletar_video(db: Session, video_id: int):
     video = db.query(Video).filter(Video.id == video_id).first()
     if video:
         db.delete(video)
         db.commit()
+
+def incrementar_likes(db: Session, video_id: int):
+    video = db.query(Video).filter(Video.id == video_id).first()
+    if video:
+        video.likes += 1
+        db.commit()
+
+def adicionar_like(db: Session, usuario_id: int, video_id: int):
+    like = Like(usuario_id=usuario_id, video_id=video_id)
+    db.add(like)
+    db.commit()
+
+def verificar_like(db: Session, usuario_id: int, video_id: int):
+    return db.query(Like).filter(Like.usuario_id == usuario_id, Like.video_id == video_id).first() is not None
+
+def criar_comentario(db: Session, usuario_id: int, video_id: int, conteudo: str):
+    comentario = Comentario(usuario_id=usuario_id, video_id=video_id, conteudo=conteudo)
+    db.add(comentario)
+    db.commit()
+    db.refresh(comentario)
+    return comentario
+
+def listar_comentarios(db: Session, video_id: int):
+    return db.query(Comentario).filter(Comentario.video_id == video_id).all()
 
 def criar_conversa(db: Session, usuario1_id: int, usuario2_id: int):
     db_conversa = Conversa(usuario1_id=usuario1_id, usuario2_id=usuario2_id)

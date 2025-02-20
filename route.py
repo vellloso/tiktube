@@ -7,6 +7,7 @@ from app.controllers.db.database import engine, Base, SessionLocal
 from app.models.usuario import Usuario
 from app.models.seguidor import Seguidor
 from app.models.video import Video
+from app.models.like import Like
 from app.models.conversa import Conversa
 from app.models.mensagem import Mensagem
 from app.models.notificacao import Notificacao
@@ -48,9 +49,21 @@ def register():
 def home():
     nome = request.get_cookie("nome", default="Visitante")
     logado = request.get_cookie("logado", default="NAO")
-    info = {'nome': nome, 'logado': logado}
-    videos = controllers.listar_videos(db)
-    return ctl.render('home', {'info': info, 'videos': videos})
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    info = {'nome': nome, 'logado': logado, 'usuario_id': usuario.id if usuario else None}
+    videos = db.query(Video).all()
+    videos_info = []
+    for video in videos:
+        comentarios = [{'conteudo': comentario.conteudo, 'autor': comentario.usuario.nome} for comentario in video.comentarios]
+        videos_info.append({
+            'id': video.id,
+            'titulo': video.titulo,
+            'caminho': video.caminho,
+            'likes': video.likes,
+            'autor': video.usuario.nome,
+            'comentarios': comentarios
+        })
+    return template('app/views/html/home', info=info, videos=videos_info, verificar_like=controllers.verificar_like, db=db)
 
 @app.route('/validar-login', method='POST')
 def validarLogin():
@@ -106,6 +119,17 @@ def view_profile(usuario_id):
         if usuario_logado:
             is_following = db.query(Seguidor).filter(Seguidor.usuario_id == usuario_logado.id, Seguidor.seguindo_id == usuario.id).first() is not None
         videos = db.query(Video).filter(Video.usuario_id == usuario.id).all()
+        videos_info = []
+        for video in videos:
+            comentarios = [{'conteudo': comentario.conteudo, 'autor': comentario.usuario.nome} for comentario in video.comentarios]
+            videos_info.append({
+                'id': video.id,
+                'titulo': video.titulo,
+                'caminho': video.caminho,
+                'likes': video.likes,
+                'autor': video.usuario.nome,
+                'comentarios': comentarios
+            })
         info = {
             'nome': usuario.nome,
             'seguidores': usuario.seguidores,
@@ -113,7 +137,7 @@ def view_profile(usuario_id):
             'is_self': is_self,
             'is_following': is_following,
             'usuario_id': usuario.id,
-            'videos': [{'titulo': video.titulo, 'caminho': video.caminho, 'id': video.id, 'descricao': 'Descrição do vídeo...', 'comentarios': ['Comentário 1...', 'Comentário 2...']} for video in videos]
+            'videos': videos_info
         }
     else:
         info = {'nome': 'Usuário não encontrado', 'seguidores': 0, 'seguindo': 0, 'is_self': False, 'is_following': False, 'usuario_id': 0, 'videos': []}
@@ -204,6 +228,40 @@ def delete_video():
     controllers.deletar_video(db, video_id)
     
     redirect(f'/profile/{usuario.id}')
+
+@app.route('/like-video', method='POST')
+def like_video():
+    video_id = int(request.forms.get('video_id'))
+    nome = request.get_cookie("nome")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if not usuario:
+        return "Erro: Usuário não encontrado!"
+    
+    video = db.query(Video).filter(Video.id == video_id).first()
+    
+    if not video:
+        return "Erro: Vídeo não encontrado!"
+    
+    if not controllers.verificar_like(db, usuario.id, video_id):
+        controllers.incrementar_likes(db, video_id)
+        controllers.adicionar_like(db, usuario.id, video_id)
+    
+    redirect('/home')
+
+@app.route('/comentar-video', method='POST')
+def comentar_video():
+    video_id = int(request.forms.get('video_id'))
+    conteudo = request.forms.get('conteudo')
+    nome = request.get_cookie("nome")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if not usuario:
+        return "Erro: Usuário não encontrado!"
+    
+    controllers.criar_comentario(db, usuario.id, video_id, conteudo)
+    
+    redirect('/home')
 
 if __name__ == '__main__':
     run(app, host='localhost', port=8080, debug=True)

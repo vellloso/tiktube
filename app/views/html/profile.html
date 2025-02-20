@@ -56,20 +56,21 @@
                         <div class="video-right">
                             <div class="video-info">
                                 <h2>{{video['titulo']}}</h2>
-                                <p>{{video['descricao']}}</p>
+                                <p>Por <strong>{{video['autor']}}</strong></p>
                             </div>
                             <div class="video-actions">
-                                <button class="like-button">Curtir</button>
+                                <p>{{video['likes']}} curtidas</p>
                             </div>
                             <div class="comments-section">
                                 <h3>Comentários</h3>
                                 <ul class="comments-list">
                                     % for comentario in video['comentarios']:
-                                        <li>{{comentario}}</li>
+                                        <li><strong>{{comentario['autor']}}:</strong> {{comentario['conteudo']}}</li>
                                     % end
                                 </ul>
-                                <form class="comment-form">
-                                    <input type="text" placeholder="Adicione um comentário..." required>
+                                <form class="comment-form" action="/comentar-video" method="post">
+                                    <input type="hidden" name="video_id" value="{{video['id']}}">
+                                    <input type="text" name="conteudo" placeholder="Adicione um comentário..." required>
                                     <button type="submit">Enviar</button>
                                 </form>
                             </div>
