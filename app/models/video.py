@@ -12,3 +12,4 @@ class Video(Base):
     caminho = Column(String, index=True)
 
     usuario = relationship("Usuario", back_populates="videos")
+    comentarios = relationship("Comentario", back_populates="video")
