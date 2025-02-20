@@ -15,6 +15,13 @@ def criar_usuario(db: Session, nome: str, senha: str):
     db.refresh(db_usuario)
     return db_usuario
 
+def criar_usuario_admin(db: Session, nome: str, senha: str):
+    db_usuario = Usuario(nome=nome, senha=senha, is_admin=True)
+    db.add(db_usuario)
+    db.commit()
+    db.refresh(db_usuario)
+    return db_usuario
+
 def autenticar_usuario(db: Session, nome: str, senha: str):
     return db.query(Usuario).filter(Usuario.nome == nome, Usuario.senha == senha).first()
 
