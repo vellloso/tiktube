@@ -1,3 +1,5 @@
+import os
+import uuid
 from app.controllers.application import Application
 from bottle import Bottle, route, run, request, static_file, redirect, response, template
 from urllib.parse import quote, unquote
@@ -5,11 +7,13 @@ from app.controllers.db.database import engine, Base, SessionLocal
 from app.models.usuario import Usuario
 from app.models.seguidor import Seguidor
 from app.models.video import Video
+from app.models.like import Like
 from app.models.conversa import Conversa
 from app.models.mensagem import Mensagem
 from app.models.notificacao import Notificacao
 from app.controllers import controllers
 
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), 'app', 'static', 'videos')
 app = Bottle()
 ctl = Application()
 Base.metadata.create_all(bind=engine)
@@ -23,11 +27,14 @@ db = SessionLocal()
 def serve_static(filepath):
     return static_file(filepath, root='./app/static')
 
+@app.route('/videos/<filename:path>')
+def serve_videos(filename):
+    return static_file(filename, root=UPLOAD_DIR)
+
 @app.route('/helper')
 def helper(info=None):
     return ctl.render('helper')
 
-#-----------------------------------------------------------------------------
 # Suas rotas aqui:
 
 @app.route('/login')
@@ -40,27 +47,34 @@ def register():
 
 @app.route('/home')
 def home():
-    # Recupera cookies
     nome = request.get_cookie("nome", default="Visitante")
     logado = request.get_cookie("logado", default="NAO")
-    info = {'nome': nome, 'logado': logado}
-    return ctl.render('home', info)
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    info = {'nome': nome, 'logado': logado, 'usuario_id': usuario.id if usuario else None}
+    videos = db.query(Video).all()
+    videos_info = []
+    for video in videos:
+        comentarios = [{'conteudo': comentario.conteudo, 'autor': comentario.usuario.nome} for comentario in video.comentarios]
+        videos_info.append({
+            'id': video.id,
+            'titulo': video.titulo,
+            'caminho': video.caminho,
+            'likes': video.likes,
+            'autor': video.usuario.nome,
+            'comentarios': comentarios
+        })
+    return template('app/views/html/home', info=info, videos=videos_info, verificar_like=controllers.verificar_like, db=db)
 
 @app.route('/validar-login', method='POST')
 def validarLogin():
     form_data = request.forms        
-    # Processar os dados do formulário
     nome = form_data.get('username')
     senha = form_data.get('password')
     
     usuario = controllers.autenticar_usuario(db, nome=nome, senha=senha)
     if usuario is None:
         redirect('/login')
-
-    # Codificar o campo para evitar problemas com caracteres especiais
-    print("NOME: " + nome)
-    print("SENHA: " + senha)
-    # Define cookies
+    
     response.set_cookie("nome", nome, path="/")
     response.set_cookie("logado", "SIM", path="/")
     redirect('/home')
@@ -68,22 +82,15 @@ def validarLogin():
 @app.route('/validar-registro', method='POST')
 def validarCadastro():
     form_data = request.forms        
-    # Processar os dados do formulário
     nome = form_data.get('username')
     senha = form_data.get('password')
-    
     usuario1 = controllers.criar_usuario(db, nome=nome, senha=senha)
-    # Codificar o campo para evitar problemas com caracteres especiais
-    print("NOME: " + nome)
-    print("SENHA: " + senha)
-    # Define cookies
     response.set_cookie("nome", nome, path="/")
     response.set_cookie("logado", "SIM", path="/")
     redirect('/home')
 
 @app.route('/logout')
 def logout():
-    # Limpa cookies
     response.set_cookie("nome", "", expires=0)
     response.set_cookie("logado", "", expires=0)
     redirect('/home')
@@ -112,6 +119,17 @@ def view_profile(usuario_id):
         if usuario_logado:
             is_following = db.query(Seguidor).filter(Seguidor.usuario_id == usuario_logado.id, Seguidor.seguindo_id == usuario.id).first() is not None
         videos = db.query(Video).filter(Video.usuario_id == usuario.id).all()
+        videos_info = []
+        for video in videos:
+            comentarios = [{'conteudo': comentario.conteudo, 'autor': comentario.usuario.nome} for comentario in video.comentarios]
+            videos_info.append({
+                'id': video.id,
+                'titulo': video.titulo,
+                'caminho': video.caminho,
+                'likes': video.likes,
+                'autor': video.usuario.nome,
+                'comentarios': comentarios
+            })
         info = {
             'nome': usuario.nome,
             'seguidores': usuario.seguidores,
@@ -119,7 +137,7 @@ def view_profile(usuario_id):
             'is_self': is_self,
             'is_following': is_following,
             'usuario_id': usuario.id,
-            'videos': [{'titulo': video.titulo, 'caminho': video.caminho, 'descricao': 'Descrição do vídeo...', 'comentarios': ['Comentário 1...', 'Comentário 2...']} for video in videos]
+            'videos': videos_info
         }
     else:
         info = {'nome': 'Usuário não encontrado', 'seguidores': 0, 'seguindo': 0, 'is_self': False, 'is_following': False, 'usuario_id': 0, 'videos': []}
@@ -164,6 +182,86 @@ def editar_perfil():
         response.set_cookie("nome", novo_nome, path="/")
     
     redirect(f'/profile/{usuario_logado.id}')
+
+@app.route('/upload-video', method='POST')
+def upload_video():
+    titulo = request.forms.get('titulo')
+    video = request.files.get('video')
+    
+    if not os.path.exists(UPLOAD_DIR):
+        os.makedirs(UPLOAD_DIR)
+    
+    # Gerar um nome de arquivo único
+    unique_filename = f"{uuid.uuid4()}_{video.filename}"
+    video_path = os.path.join(UPLOAD_DIR, unique_filename)
+    video.save(video_path)
+    os.chmod(video_path, 0o644)
+    
+    nome = request.get_cookie("nome")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if not usuario:
+        return "Erro: Usuário não encontrado!"
+    
+    novo_video = controllers.criar_video(db, usuario_id=usuario.id, titulo=titulo, caminho=unique_filename)
+    
+    return f"Upload concluído! Vídeo salvo em: {video_path}"
+
+@app.route('/delete-video', method='POST')
+def delete_video():
+    video_id = int(request.forms.get('video_id'))
+    nome = request.get_cookie("nome")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if not usuario:
+        return "Erro: Usuário não encontrado!"
+    
+    video = db.query(Video).filter(Video.id == video_id, Video.usuario_id == usuario.id).first()
+    
+    if not video:
+        return "Erro: Vídeo não encontrado ou você não tem permissão para excluí-lo!"
+    
+    video_path = os.path.join(UPLOAD_DIR, video.caminho)
+    if os.path.exists(video_path):
+        os.remove(video_path)
+    
+    controllers.deletar_video(db, video_id)
+    
+    redirect(f'/profile/{usuario.id}')
+
+@app.route('/like-video', method='POST')
+def like_video():
+    video_id = int(request.forms.get('video_id'))
+    nome = request.get_cookie("nome")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if not usuario:
+        return "Erro: Usuário não encontrado!"
+    
+    video = db.query(Video).filter(Video.id == video_id).first()
+    
+    if not video:
+        return "Erro: Vídeo não encontrado!"
+    
+    if not controllers.verificar_like(db, usuario.id, video_id):
+        controllers.incrementar_likes(db, video_id)
+        controllers.adicionar_like(db, usuario.id, video_id)
+    
+    redirect('/home')
+
+@app.route('/comentar-video', method='POST')
+def comentar_video():
+    video_id = int(request.forms.get('video_id'))
+    conteudo = request.forms.get('conteudo')
+    nome = request.get_cookie("nome")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if not usuario:
+        return "Erro: Usuário não encontrado!"
+    
+    controllers.criar_comentario(db, usuario.id, video_id, conteudo)
+    
+    redirect('/home')
 
 if __name__ == '__main__':
     run(app, host='localhost', port=8080, debug=True)

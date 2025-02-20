@@ -18,3 +18,4 @@ class Usuario(Base):
     conversas1 = relationship("Conversa", foreign_keys="[Conversa.usuario1_id]", back_populates="usuario1")
     conversas2 = relationship("Conversa", foreign_keys="[Conversa.usuario2_id]", back_populates="usuario2")
     mensagens = relationship("Mensagem", back_populates="usuario")
+    comentarios = relationship("Comentario", back_populates="usuario")

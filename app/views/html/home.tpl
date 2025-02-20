@@ -26,33 +26,44 @@
                 % end
             </div>
             <div class="video-list">
-                <div class="video-container">
-                    <video controls>
-                        <source src="/static/videos/sample.mp4" type="video/mp4">
-                        Seu navegador não suporta o elemento de vídeo.
-                    </video>
-                    <div class="video-right">
-                        <div class="video-info">
-                            <h2>Nome do Vídeo</h2>
-                            <p>Descrição do vídeo...</p>
-                        </div>
-                        <div class="video-actions">
-                            <button class="like-button">Curtir</button>
-                        </div>
-                        <div class="comments-section">
-                            <h3>Comentários</h3>
-                            <ul class="comments-list">
-                                <li>Comentário 1...</li>
-                                <li>Comentário 2...</li>
-                            </ul>
-                            <form class="comment-form">
-                                <input type="text" placeholder="Adicione um comentário..." required>
-                                <button type="submit">Enviar</button>
-                            </form>
+                % for video in videos:
+                    <div class="video-container">
+                        <video controls>
+                            <source src="static/videos/{{video['caminho']}}" type="video/mp4">
+                            Seu navegador não suporta o elemento de vídeo.
+                        </video>
+                        <div class="video-right">
+                            <div class="video-info">
+                                <h2>{{video['titulo']}}</h2>
+                                <p>Por <strong>{{video['autor']}}</strong></p>
+                            </div>
+                            <div class="video-actions">
+                                % if not verificar_like(db, info['usuario_id'], video['id']):
+                                    <form action="/like-video" method="post">
+                                        <input type="hidden" name="video_id" value="{{video['id']}}">
+                                        <button type="submit" class="like-button">Curtir</button>
+                                    </form>
+                                % else:
+                                    <button class="like-button" disabled>Curtido</button>
+                                % end
+                                <p>{{video['likes']}} curtidas</p>
+                            </div>
+                            <div class="comments-section">
+                                <h3>Comentários</h3>
+                                <ul class="comments-list">
+                                    % for comentario in video['comentarios']:
+                                        <li><strong>{{comentario['autor']}}:</strong> {{comentario['conteudo']}}</li>
+                                    % end
+                                </ul>
+                                <form class="comment-form" action="/comentar-video" method="post">
+                                    <input type="hidden" name="video_id" value="{{video['id']}}">
+                                    <input type="text" name="conteudo" placeholder="Adicione um comentário..." required>
+                                    <button type="submit">Enviar</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <!-- Adicione mais vídeos aqui -->
+                % end
             </div>
         </main>
     </div>
