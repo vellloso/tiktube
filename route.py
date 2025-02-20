@@ -20,6 +20,11 @@ Base.metadata.create_all(bind=engine)
 # Cria uma sessão para interagir com o banco de dados
 db = SessionLocal()
 
+
+admin_usuario = db.query(Usuario).filter(Usuario.nome == "admin").first()
+if not admin_usuario:
+    controllers.criar_usuario_admin(db, nome="admin", senha="admin")
+
 #-----------------------------------------------------------------------------
 # Rotas:
 
@@ -50,7 +55,7 @@ def home():
     nome = request.get_cookie("nome", default="Visitante")
     logado = request.get_cookie("logado", default="NAO")
     usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
-    info = {'nome': nome, 'logado': logado, 'usuario_id': usuario.id if usuario else None}
+    info = {'nome': nome, 'logado': logado, 'usuario_id': usuario.id if usuario else None, 'is_admin': usuario.is_admin if usuario else False}
     videos = db.query(Video).all()
     videos_info = []
     for video in videos:
@@ -61,8 +66,33 @@ def home():
             'caminho': video.caminho,
             'likes': video.likes,
             'autor': video.usuario.nome,
+            'autor_id': video.usuario.id,
             'comentarios': comentarios
         })
+    return template('app/views/html/home', info=info, videos=videos_info, verificar_like=controllers.verificar_like, db=db)
+
+@app.route('/home/following')
+def home_following():
+    nome = request.get_cookie("nome", default="Visitante")
+    logado = request.get_cookie("logado", default="NAO")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    if not usuario:
+        redirect('/login')
+    seguindo_ids = [seguidor.seguindo_id for seguidor in db.query(Seguidor).filter(Seguidor.usuario_id == usuario.id).all()]
+    videos = db.query(Video).filter(Video.usuario_id.in_(seguindo_ids)).all()
+    videos_info = []
+    for video in videos:
+        comentarios = [{'conteudo': comentario.conteudo, 'autor': comentario.usuario.nome} for comentario in video.comentarios]
+        videos_info.append({
+            'id': video.id,
+            'titulo': video.titulo,
+            'caminho': video.caminho,
+            'likes': video.likes,
+            'autor': video.usuario.nome,
+            'autor_id': video.usuario.id,
+            'comentarios': comentarios
+        })
+    info = {'nome': nome, 'logado': logado, 'usuario_id': usuario.id, 'is_admin': usuario.is_admin}
     return template('app/views/html/home', info=info, videos=videos_info, verificar_like=controllers.verificar_like, db=db)
 
 @app.route('/validar-login', method='POST')
@@ -262,6 +292,59 @@ def comentar_video():
     controllers.criar_comentario(db, usuario.id, video_id, conteudo)
     
     redirect('/home')
+
+@app.route('/admin')
+def admin():
+    nome = request.get_cookie("nome", default="Visitante")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    if not usuario or not usuario.is_admin:
+        redirect('/home')
+    
+    usuarios = db.query(Usuario).all()
+    videos = db.query(Video).all()
+    return template('app/views/html/admin.tpl', usuarios=usuarios, videos=videos)
+
+@app.route('/delete-user', method='POST')
+def delete_user():
+    usuario_id = int(request.forms.get('usuario_id'))
+    nome = request.get_cookie("nome")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if not usuario or not usuario.is_admin:
+        return "Erro: Permissão negada!"
+    
+    usuario_a_deletar = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    
+    if not usuario_a_deletar:
+        return "Erro: Usuário não encontrado!"
+    
+    db.delete(usuario_a_deletar)
+    db.commit()
+    
+    redirect('/admin')
+
+@app.route('/delete-video-admin', method='POST')
+def delete_video_admin():
+    video_id = int(request.forms.get('video_id'))
+    nome = request.get_cookie("nome")
+    usuario = db.query(Usuario).filter(Usuario.nome == nome).first()
+    
+    if not usuario or not usuario.is_admin:
+        return "Erro: Permissão negada!"
+    
+    video = db.query(Video).filter(Video.id == video_id).first()
+    
+    if not video:
+        return "Erro: Vídeo não encontrado!"
+    
+    video_path = os.path.join(UPLOAD_DIR, video.caminho)
+    if os.path.exists(video_path):
+        os.remove(video_path)
+    
+    db.delete(video)
+    db.commit()
+    
+    redirect('/admin')
 
 if __name__ == '__main__':
     run(app, host='localhost', port=8080, debug=True)
