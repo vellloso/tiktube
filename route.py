@@ -33,7 +33,7 @@ if not admin_usuario:
     controllers.criar_usuario_admin(db, nome="admin", senha="admin")
 
 #-----------------------------------------------------------------------------
-# Rotas:
+# Rotas: 
 
 @app.route('/static/<filepath:path>')
 def serve_static(filepath):
