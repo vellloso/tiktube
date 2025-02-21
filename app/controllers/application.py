@@ -8,7 +8,11 @@ class Application:
             'home': self.home,
             'helper': self.helper,
             'profile': self.profile,
-            'admin': self.admin
+            'admin': self.admin,
+            'chat': self.render_chat,
+            'erro': self.erro,
+            'sucesso': self.sucesso,
+            'bate_papo': self.bate_papo  
         }
 
     def render(self, page, info=None):
@@ -35,3 +39,15 @@ class Application:
 
     def admin(self, info=None):
         return template('app/views/html/admin', info=info)
+
+    def render_chat(self, info=None):
+        return template('app/views/html/chat', info=info)
+    
+    def erro(self, info=None):
+        return template('app/views/html/erro', info=info)
+    
+    def sucesso(self, info=None):
+        return template('app/views/html/sucesso', info=info) 
+    
+    def  bate_papo(self, info=None):
+        return template('app/views/html/bate_papo.tpl', info=info)

@@ -13,8 +13,11 @@
             <h1>TikTube</h1>
             <ul>
                 <li><a href="/home">Home</a></li>
-                <li><a href="/profile">Perfil</a></li>
-                % if info.get('is_admin', False):
+                % if info['info']['logado'] == 'SIM':
+                    <li><a href="/profile">Perfil</a></li>
+                    <li><a href="/chat-{{info['info']['usuario_id']}}">Chat</a></li>
+                % end
+                % if info['info'].get('is_admin', False):
                     <li><a href="/admin">Admin</a></li>
                 % end
                 <li><a href="/logout">Sair</a></li>
@@ -22,19 +25,21 @@
         </nav>
         <main class="main-content">
             <div class="user-info">
-                % if info['logado'] == 'SIM':
-                    <h2>Bem-vindo, {{info['nome']}}</h2>
+                % if info['info']['logado'] == 'SIM':
+                    <h2>Bem-vindo, {{info['info']['nome']}}</h2>
                     <a href="/home/following" class="btn">Seguindo</a>
+                    <a href="/home" class="btn">Tudo</a>
                 % else:
-                    <h2>Bem-vindo, você não está logado, caso queira logar <a href="/login">clique aqui</a>.</h2>
+                    <a href="/login" class="btn">Logar</a>
+                    <a href="/register" class="btn">Registrar</a>
                 % end
             </div>
             <div class="video-list">
-                % if videos:
-                    % for video in videos:
+                % if info['videos']:
+                    % for video in info['videos']:
                         <div class="video-container">
                             <video controls>
-                                <source src="static/videos/{{video['caminho']}}" type="video/mp4">
+                                <source src="/static/videos/{{video['caminho']}}" type="video/mp4">
                                 Seu navegador não suporta o elemento de vídeo.
                             </video>
                             <div class="video-right">
@@ -44,7 +49,7 @@
                                     <a href="/profile/{{video['autor_id']}}" class="btn">Visitar Perfil</a>
                                 </div>
                                 <div class="video-actions">
-                                    % if not verificar_like(db, info['usuario_id'], video['id']):
+                                    % if not info['verificar_like'](info['db'], info['info']['usuario_id'], video['id']):
                                         <form action="/like-video" method="post">
                                             <input type="hidden" name="video_id" value="{{video['id']}}">
                                             <button type="submit" class="like-button">Curtir</button>

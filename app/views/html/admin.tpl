@@ -28,7 +28,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    % for usuario in usuarios:
+                    % for usuario in info['usuarios']:
                         <tr>
                             <td>{{usuario.id}}</td>
                             <td>{{usuario.nome}}</td>
@@ -53,7 +53,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    % for video in videos:
+                    % for video in info['videos']:
                         <tr>
                             <td>{{video.id}}</td>
                             <td>{{video.titulo}}</td>

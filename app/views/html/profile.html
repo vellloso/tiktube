@@ -26,8 +26,8 @@
                 </div>
                 <div class="profile-actions">
                     % if info['is_self']:
-                        <button class="btn" onclick="openEditProfilePopup()">Editar Perfil</button>
-                        <button class="btn" onclick="openUploadVideoPopup()">Upload de Vídeo</button>
+                        <button class="btn" onclick="openPopup('editProfilePopup')">Editar Perfil</button>
+                        <button class="btn" onclick="openPopup('uploadVideoPopup')">Upload de Vídeo</button>
                     % else:
                         % if info['is_following']:
                             <form action="/unfollow" method="post">
@@ -47,7 +47,7 @@
                 % for video in info['videos']:
                     <div class="video-container">
                         % if info['is_self']:
-                            <button class="delete-video-btn" onclick="openDeleteVideoPopup('{{video['id']}}')">Excluir</button>
+                            <button class="delete-video-btn" onclick="openPopup('deleteVideoPopup', '{{video['id']}}')">Excluir</button>
                         % end
                         <video controls>
                             <source src="/static/videos/{{video['caminho']}}" type="video/mp4">
@@ -84,7 +84,6 @@
     <!-- Popup de Edição de Perfil -->
     <div id="editProfilePopup" class="popup">
         <div class="popup-content">
-            <span class="close" onclick="closeEditProfilePopup()">&times;</span>
             <h2>Editar Perfil</h2>
             <form action="/editar-perfil" method="post">
                 <label for="nome">Nome:</label>
@@ -93,13 +92,13 @@
                 <input type="password" id="senha" name="senha" required>
                 <button type="submit" class="btn">Salvar</button>
             </form>
+            <button class="btn" style="margin-top: 25px;" onclick="closePopup('editProfilePopup')">Voltar para Perfil</button>
         </div>
     </div>
 
     <!-- Popup de Upload de Vídeo -->
     <div id="uploadVideoPopup" class="popup">
         <div class="popup-content">
-            <span class="close" onclick="closeUploadVideoPopup()">&times;</span>
             <h2>Upload de Vídeo</h2>
             <form action="/upload-video" method="post" enctype="multipart/form-data">
                 <label for="titulo">Título do Vídeo:</label>
@@ -108,47 +107,33 @@
                 <input type="file" id="video" name="video" accept="video/*" required><br><br>
                 <input type="submit" value="Upload" class="btn">
             </form>
+            <button style="margin-top: 25px;" class="btn" onclick="closePopup('uploadVideoPopup')">Voltar para Perfil</button>
         </div>
     </div>
 
     <!-- Popup de Confirmação de Exclusão de Vídeo -->
     <div id="deleteVideoPopup" class="popup">
         <div class="popup-content">
-            <span class="close" onclick="closeDeleteVideoPopup()">&times;</span>
             <h2>Confirmar Exclusão</h2>
             <p>Você tem certeza que deseja excluir este vídeo?</p>
             <form id="deleteVideoForm" action="/delete-video" method="post">
                 <input type="hidden" id="deleteVideoId" name="video_id">
                 <button type="submit" class="btn btn-red">Excluir</button>
-                <button type="button" class="btn btn-green" onclick="closeDeleteVideoPopup()">Cancelar</button>
+                <button type="button" class="btn btn-green" onclick="closePopup('deleteVideoPopup')">Cancelar</button>
             </form>
         </div>
     </div>
 
     <script>
-        function openEditProfilePopup() {
-            document.getElementById("editProfilePopup").style.display = "block";
+        function openPopup(popupId, videoId = null) {
+            if (videoId) {
+                document.getElementById("deleteVideoId").value = videoId;
+            }
+            document.getElementById(popupId).style.display = "block";
         }
 
-        function closeEditProfilePopup() {
-            document.getElementById("editProfilePopup").style.display = "none";
-        }
-
-        function openUploadVideoPopup() {
-            document.getElementById("uploadVideoPopup").style.display = "block";
-        }
-
-        function closeUploadVideoPopup() {
-            document.getElementById("uploadVideoPopup").style.display = "none";
-        }
-
-        function openDeleteVideoPopup(videoId) {
-            document.getElementById("deleteVideoId").value = videoId;
-            document.getElementById("deleteVideoPopup").style.display = "block";
-        }
-
-        function closeDeleteVideoPopup() {
-            document.getElementById("deleteVideoPopup").style.display = "none";
+        function closePopup(popupId) {
+            document.getElementById(popupId).style.display = "none";
         }
     </script>
 </body>
